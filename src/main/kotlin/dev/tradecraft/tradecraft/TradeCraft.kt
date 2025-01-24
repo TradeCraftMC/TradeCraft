@@ -1,8 +1,8 @@
-package com.decduck3.tradecraft
+package dev.tradecraft.tradecraft
 
-import com.decduck3.tradecraft.config.TradeCraftConfiguration
-import com.decduck3.tradecraft.database.DatabaseManager
-import com.decduck3.tradecraft.web.WebManager
+import dev.tradecraft.tradecraft.config.TradeCraftConfiguration
+import dev.tradecraft.tradecraft.database.DatabaseManager
+import dev.tradecraft.tradecraft.web.WebManager
 import org.bukkit.plugin.java.JavaPlugin
 
 class TradeCraft : JavaPlugin() {

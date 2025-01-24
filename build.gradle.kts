@@ -1,12 +1,10 @@
-import org.jetbrains.kotlin.gradle.utils.extendsFrom
-
 plugins {
     kotlin("jvm") version "2.1.20-Beta1"
     id("com.github.johnrengelman.shadow") version "8.1.1"
     id("xyz.jpenilla.run-paper") version "2.3.1"
 }
 
-group = "com.decduck3"
+group = "dev.tradecraft"
 version = "1.0-SNAPSHOT"
 
 repositories {
@@ -39,7 +37,7 @@ dependencies {
     // Web
     embed("io.undertow:undertow-core:2.3.18.Final")
     embed("io.undertow:undertow-websockets-jsr:2.3.18.Final")
-    embed("org.jboss.xnio:xnio-api:3.8.16.Final")
+    embed("com.google.code.gson:gson:2.11.0")
 }
 
 val targetJavaVersion = 21

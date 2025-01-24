@@ -1,7 +1,7 @@
-package com.decduck3.tradecraft.database
+package dev.tradecraft.tradecraft.database
 
-import com.decduck3.tradecraft.config.TradeCraftConfiguration
-import com.decduck3.tradecraft.database.objects.User
+import dev.tradecraft.tradecraft.config.TradeCraftConfiguration
+import dev.tradecraft.tradecraft.database.objects.User
 import org.hibernate.SessionFactory
 import org.hibernate.boot.MetadataSources
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder

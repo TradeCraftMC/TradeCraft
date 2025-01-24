@@ -1,4 +1,4 @@
-package com.decduck3.tradecraft.web.abst
+package dev.tradecraft.tradecraft.web.abst
 
 import io.undertow.util.HeaderMap
 import io.undertow.util.Headers

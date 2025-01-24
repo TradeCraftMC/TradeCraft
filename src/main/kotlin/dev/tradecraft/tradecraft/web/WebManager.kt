@@ -1,15 +1,18 @@
-package com.decduck3.tradecraft.web
+package dev.tradecraft.tradecraft.web
 
-import com.decduck3.tradecraft.config.TradeCraftConfiguration
-import com.decduck3.tradecraft.web.abst.WebHandler
-import com.decduck3.tradecraft.web.abst.WebRoute
+import dev.tradecraft.tradecraft.config.TradeCraftConfiguration
+import dev.tradecraft.tradecraft.web.abst.WebHandler
+import dev.tradecraft.tradecraft.web.abst.WebRoute
 import io.github.classgraph.ClassGraph
 import io.undertow.Handlers
 import io.undertow.Undertow
 import io.undertow.server.HttpHandler
 import io.undertow.server.HttpServerExchange
+import java.io.File
 import java.nio.ByteBuffer
 import java.util.logging.Logger
+import kotlin.io.path.Path
+import kotlin.math.log
 
 class WebManager(configuration: TradeCraftConfiguration, logger: Logger) : HttpHandler {
     private val configuration: TradeCraftConfiguration = configuration
@@ -22,7 +25,7 @@ class WebManager(configuration: TradeCraftConfiguration, logger: Logger) : HttpH
 
         // Lookup and find all the handlers
         val possibleRoutes =
-            ClassGraph().acceptPackages("com.decduck3.tradecraft.web.routes").enableAnnotationInfo().enableClassInfo()
+            ClassGraph().acceptPackages("dev.tradecraft.tradecraft.web.routes").enableAnnotationInfo().enableClassInfo()
                 .scan()
         possibleRoutes.use {
             val routes = it.getClassesWithAnnotation(WebRoute::class.java)
@@ -50,12 +53,13 @@ class WebManager(configuration: TradeCraftConfiguration, logger: Logger) : HttpH
         if (exchange == null) {
             return
         }
-        val relativeUrl = "/${exchange.requestPath.substring(configuration.getWebBaseUrl().length).trimStart('/')}"
+        val canonicalPath = Path(exchange.requestPath).normalize().toString()
+        val relativeUrl = "/${canonicalPath.substring(configuration.getWebBaseUrl().length).trimStart('/')}"
         val method = exchange.requestMethod.toString().uppercase()
 
         val handler = routeHandlers[relativeUrl]?.get(method) ?: fallbackHandler
 
-        val response = handler.handle(exchange)
+        val response = handler.handle(exchange, relativeUrl)
 
         exchange.responseCode = response.code;
         if (response.body != null) {

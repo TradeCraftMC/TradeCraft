@@ -1,4 +1,4 @@
-package com.decduck3.tradecraft.config
+package dev.tradecraft.tradecraft.config
 
 import org.bukkit.configuration.file.FileConfiguration
 

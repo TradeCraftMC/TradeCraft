@@ -1,4 +1,4 @@
-package com.decduck3.tradecraft.database.objects
+package dev.tradecraft.tradecraft.database.objects
 
 import jakarta.persistence.*
 
