@@ -2,6 +2,7 @@ package dev.tradecraft.tradecraft.database
 
 import dev.tradecraft.tradecraft.config.TradeCraftConfiguration
 import dev.tradecraft.tradecraft.database.objects.User
+import dev.tradecraft.tradecraft.database.objects.VirtualPlayerInventoryState
 import org.hibernate.SessionFactory
 import org.hibernate.boot.MetadataSources
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder
@@ -14,7 +15,8 @@ class DatabaseManager(configuration: TradeCraftConfiguration) {
     init {
         val registry = StandardServiceRegistryBuilder().build()
         try {
-            val metadataSources = MetadataSources(registry).addAnnotatedClasses(User::class.java)
+            val metadataSources =
+                MetadataSources(registry).addAnnotatedClasses(User::class.java, VirtualPlayerInventoryState::class.java)
             val dbConfiguration = Configuration(metadataSources);
 
             dbConfiguration.setProperty("hibernate.connection.url", configuration.getDatabaseUrl())
@@ -29,5 +31,27 @@ class DatabaseManager(configuration: TradeCraftConfiguration) {
             StandardServiceRegistryBuilder.destroy(registry);
             throw RuntimeException("Unable to initialize session factory", e);
         }
+    }
+
+    fun createVirtualInventory(playerUUID: String): VirtualPlayerInventoryState {
+        val virtualPlayerInventory = VirtualPlayerInventoryState(playerUUID)
+        sessionFactory.inTransaction { session ->
+            session.persist(virtualPlayerInventory)
+        }
+        return virtualPlayerInventory
+    }
+
+    fun updateVirtualInventory(virtualPlayerInventoryState: VirtualPlayerInventoryState) {
+        sessionFactory.inTransaction { session ->
+            session.merge(virtualPlayerInventoryState)
+        }
+    }
+
+    fun fetchVirtualInventory(playerUUID: String): VirtualPlayerInventoryState? {
+        var inventory: VirtualPlayerInventoryState? = null;
+        sessionFactory.inTransaction { session ->
+            inventory = session.get(VirtualPlayerInventoryState::class.java, playerUUID)
+        }
+        return inventory
     }
 }
