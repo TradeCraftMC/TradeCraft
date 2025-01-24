@@ -1,0 +1,11 @@
+# Configuration for TradeCraft's API and frontend
+web:
+  port: 8080
+  baseUrl: /
+
+# Configuration for TradeCraft's SQL database
+database:
+  url: jdbc:sqlite:sample.db
+  dialect: org.hibernate.community.dialect.SQLiteDialect
+  username: tradecraft
+  password:

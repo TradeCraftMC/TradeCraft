@@ -1,0 +1,4 @@
+name: TradeCraft
+version: '1.0-SNAPSHOT'
+main: com.decduck3.tradecraft.TradeCraft
+api-version: '1.21'
