@@ -1,7 +1,6 @@
 package dev.tradecraft.tradecraft.economy.data
 
 import dev.tradecraft.tradecraft.database.converters.ItemStackConverter
-import dev.tradecraft.tradecraft.economy.interfaces.Currency
 import jakarta.persistence.*
 import org.bukkit.inventory.ItemStack
 import org.hibernate.annotations.JdbcTypeCode

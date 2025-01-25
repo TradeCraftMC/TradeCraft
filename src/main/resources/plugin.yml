@@ -3,3 +3,8 @@ version: '1.0-SNAPSHOT'
 main: dev.tradecraft.tradecraft.TradeCraft
 api-version: '1.21'
 author: DecDuck
+commands:
+  authorize:
+    description: Authorize a web session with your Minecraft account
+    usage: /authorize <code>
+    permission: tradecraft.authorize

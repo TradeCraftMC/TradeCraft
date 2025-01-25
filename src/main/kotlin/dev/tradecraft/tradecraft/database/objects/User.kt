@@ -2,20 +2,21 @@ package dev.tradecraft.tradecraft.database.objects
 
 import dev.tradecraft.tradecraft.economy.data.Listing
 import dev.tradecraft.tradecraft.economy.data.VendorProfile
-import dev.tradecraft.tradecraft.economy.interfaces.Currency
+import dev.tradecraft.tradecraft.economy.data.Currency
 import dev.tradecraft.tradecraft.economy.interfaces.Customer
 import jakarta.persistence.*
+import org.hibernate.annotations.JdbcTypeCode
+import org.hibernate.type.SqlTypes
 
 @Entity
-@Table(name = "users")
 class User : Customer {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private val id: String = "";
+    val id: String = "";
+    var playerUUID: String = ""
 
     @OneToOne(cascade = [(CascadeType.ALL)])
-    private val vendorProfile: VendorProfile? = null
-
+    var vendorProfile: VendorProfile? = null
 
     override fun purchase(listing: Listing) {
         TODO("Not yet implemented")

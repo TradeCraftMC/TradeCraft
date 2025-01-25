@@ -1,28 +1,37 @@
 package dev.tradecraft.tradecraft.web
 
-import dev.tradecraft.tradecraft.config.TradeCraftConfiguration
+import com.google.gson.GsonBuilder
+import dev.tradecraft.tradecraft.TradeCraft
 import dev.tradecraft.tradecraft.web.abst.WebHandler
 import dev.tradecraft.tradecraft.web.abst.WebRoute
+import dev.tradecraft.tradecraft.web.auth.AuthenticationManager
+import dev.tradecraft.tradecraft.web.routes.auth.WebsocketLinkHandler
 import io.github.classgraph.ClassGraph
 import io.undertow.Handlers
 import io.undertow.Undertow
 import io.undertow.server.HttpHandler
 import io.undertow.server.HttpServerExchange
-import java.io.File
+import io.undertow.util.Headers
+import org.springframework.security.web.util.matcher.IpAddressMatcher
+import java.net.InetAddress
 import java.nio.ByteBuffer
-import java.util.logging.Logger
 import kotlin.io.path.Path
-import kotlin.math.log
 
-class WebManager(configuration: TradeCraftConfiguration, logger: Logger) : HttpHandler {
-    private val configuration: TradeCraftConfiguration = configuration
-    private val logger: Logger = logger
+class WebManager : HttpHandler {
     private val server: Undertow
     private val routeHandlers: HashMap<String, HashMap<String, WebHandler>> = HashMap()
     private val fallbackHandler: FallbackHandler = FallbackHandler()
+    private val trustedProxies: List<IpAddressMatcher> =
+        TradeCraft.configuration.getTrustedProxies().map { IpAddressMatcher(it) }
+    val authenticationManager = AuthenticationManager()
+
+    companion object {
+        val webGson = GsonBuilder().create()
+
+        fun serializeBody(obj: Any): ByteArray = webGson.toJson(obj).encodeToByteArray()
+    }
 
     init {
-
         // Lookup and find all the handlers
         val possibleRoutes =
             ClassGraph().acceptPackages("dev.tradecraft.tradecraft.web.routes").enableAnnotationInfo().enableClassInfo()
@@ -38,15 +47,18 @@ class WebManager(configuration: TradeCraftConfiguration, logger: Logger) : HttpH
 
                 val handler = it.loadClass().getConstructor().newInstance() as WebHandler
                 routeHandlers.getOrPut(path) { HashMap() }[method] = handler
-                logger.info("Registered web handler with name of " + handler.javaClass.name)
+                TradeCraft.logger.info("Registered web handler with name of " + handler.javaClass.name)
             }
         }
 
-        val handler = Handlers.path().addPrefixPath(configuration.getWebBaseUrl(), this)
+        val handler = Handlers.path().addPrefixPath("/api/v1/auth/link-ws", Handlers.websocket(WebsocketLinkHandler()))
+            .addPrefixPath(TradeCraft.configuration.getWebBaseUrl(), this)
 
-        server = Undertow.builder().addHttpListener(configuration.getWebPort(), "0.0.0.0").setHandler(handler).build()
+        server =
+            Undertow.builder().addHttpListener(TradeCraft.configuration.getWebPort(), "0.0.0.0").setHandler(handler)
+                .build()
         server.start()
-        logger.info("Web server started on 0.0.0.0:" + configuration.getWebPort())
+        TradeCraft.logger.info("Web server started on 0.0.0.0:" + TradeCraft.configuration.getWebPort())
     }
 
     override fun handleRequest(exchange: HttpServerExchange?) {
@@ -54,21 +66,35 @@ class WebManager(configuration: TradeCraftConfiguration, logger: Logger) : HttpH
             return
         }
         val canonicalPath = Path(exchange.requestPath).normalize().toString()
-        val relativeUrl = "/${canonicalPath.substring(configuration.getWebBaseUrl().length).trimStart('/')}"
+        val relativeUrl =
+            "/${canonicalPath.substring(TradeCraft.configuration.getWebBaseUrl().length).trimStart('/').trimEnd(('/'))}"
         val method = exchange.requestMethod.toString().uppercase()
 
         val handler = routeHandlers[relativeUrl]?.get(method) ?: fallbackHandler
 
-        val response = handler.handle(exchange, relativeUrl)
+        var sourceAddress = exchange.sourceAddress.address
 
-        exchange.responseCode = response.code;
-        if (response.body != null) {
-            exchange.responseSender.send(ByteBuffer.wrap(response.body));
+        val forwardForHeader =
+            exchange.requestHeaders.find { it.headerName == Headers.X_FORWARDED_FOR }?.getOrNull(0)
+        if (forwardForHeader != null) {
+            val matches = trustedProxies.find { it.matches(sourceAddress.toString()) } != null
+            if (matches) {
+                sourceAddress = InetAddress.getByName(forwardForHeader)
+            }
         }
-        if (response.headers != null) {
-            exchange.responseHeaders.putAll(response.headers)
+
+        val response = handler.handle(exchange, relativeUrl, sourceAddress, null)
+
+        if (response != null) {
+            exchange.responseCode = response.code;
+            if (response.body != null) {
+                exchange.responseSender.send(ByteBuffer.wrap(response.body));
+            }
+            if (response.headers != null) {
+                exchange.responseHeaders.putAll(response.headers)
+            }
         }
+
         exchange.responseSender.close();
-
     }
 }

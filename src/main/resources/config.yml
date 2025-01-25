@@ -2,6 +2,7 @@
 web:
   port: 8080
   baseUrl: /
+  trustedProxies: []
 
 # Configuration for TradeCraft's SQL database
 database:

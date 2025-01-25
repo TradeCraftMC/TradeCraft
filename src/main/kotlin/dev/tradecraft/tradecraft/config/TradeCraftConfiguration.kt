@@ -8,6 +8,7 @@ class TradeCraftConfiguration(configuration: FileConfiguration) {
     // Web UI
     fun getWebPort(): Int = configuration.getInt("web.port")
     fun getWebBaseUrl(): String = configuration.getString("web.baseUrl")!!
+    fun getTrustedProxies(): List<String> = configuration.getStringList("web.trustedProxies")
 
     // Database
     fun getDatabaseUrl(): String = configuration.getString("database.url").orEmpty()

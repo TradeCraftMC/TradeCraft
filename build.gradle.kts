@@ -38,6 +38,7 @@ dependencies {
     embed("io.undertow:undertow-core:2.3.18.Final")
     embed("io.undertow:undertow-websockets-jsr:2.3.18.Final")
     embed("com.google.code.gson:gson:2.11.0")
+    embed("org.springframework.security:spring-security-web:6.4.2")
 }
 
 val targetJavaVersion = 21
