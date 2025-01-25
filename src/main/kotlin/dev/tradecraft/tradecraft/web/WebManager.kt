@@ -78,7 +78,6 @@ class WebManager : HttpHandler {
         var user: User? = null
         if (exchange.requestHeaders.headerNames.contains(Headers.AUTHORIZATION)) {
             val authorization = exchange.requestHeaders.get(Headers.AUTHORIZATION)[0].split(" ")
-            TradeCraft.logger.info(authorization[0] + " - " + authorization[1])
             if (authorization.size == 2) {
                 val type = authorization[0]
                 when (type) {

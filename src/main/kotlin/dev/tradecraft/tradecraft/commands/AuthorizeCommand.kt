@@ -22,10 +22,20 @@ class AuthorizeCommand : CommandExecutor, TabCompleter {
             return true
         }
         val code = args[0]
-        TradeCraft.webManager.authenticationManager.linkManager.confirmLink(code, sender.uniqueId.toString())
-        sender.spigot().sendMessage(
-            TextComponent("[TradeCraft] ").color(ChatColor.GOLD), TextComponent("Authorized! ").color(ChatColor.WHITE)
-        )
+        val confirmed =
+            TradeCraft.webManager.authenticationManager.linkManager.confirmLink(code, sender.uniqueId.toString())
+        if (confirmed) {
+            sender.spigot().sendMessage(
+                TextComponent("[TradeCraft] ").color(ChatColor.GOLD),
+                TextComponent("Authorized!").color(ChatColor.WHITE)
+            )
+        } else {
+            sender.spigot().sendMessage(
+                TextComponent("[TradeCraft] ").color(ChatColor.GOLD),
+                TextComponent("Failed to authorize. Please check the authorization code.").color(ChatColor.RED)
+            )
+        }
+
 
         return true
     }

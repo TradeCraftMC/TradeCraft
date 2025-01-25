@@ -13,7 +13,7 @@ export default defineNuxtConfig({
     },
     plugins: [tailwindcss()],
   },
-  css: ["~/assets/main.scss"],
+  css: ["~/assets/main.css"],
   app: {
     head: {
       link: [{ rel: "icon", href: "/assets/favicon.png" }],
