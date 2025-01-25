@@ -12,7 +12,7 @@ import io.undertow.websockets.spi.WebSocketHttpExchange
 class WebsocketLinkHandler : WebSocketConnectionCallback {
     override fun onConnect(exchange: WebSocketHttpExchange?, channel: WebSocketChannel?) {
         val code = TradeCraft.webManager.authenticationManager.linkManager.createLink({ session ->
-            WebSockets.sendText("connect:${WebManager.webGson.toJson(session)}", channel, null)
+            WebSockets.sendText("connect:${session.token}", channel, null)
         }, channel!!.sourceAddress.address)
         WebSockets.sendText("code:$code", channel, null);
     }

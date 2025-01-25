@@ -21,5 +21,16 @@ class SessionManager {
         return session
     }
 
+    fun fetchSession(token: String): User? {
+        val session = sessions[token] ?: return null
+        val currentTime = System.currentTimeMillis()
+        if (session.expiry < currentTime) {
+            sessions.remove(token)
+            return null
+        }
+
+        return session.user
+    }
+
     fun getSessions(user: User): List<Session> = sessions.values.toList().filter { session -> session.user == user }
 }

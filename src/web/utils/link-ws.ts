@@ -65,7 +65,16 @@ export class WebSocketHandler {
   }
 }
 
-const linkWebsocketHandler = new WebSocketHandler("/api/v1/auth/link-ws", "localhost:8080");
-linkWebsocketHandler.listen((message) => {
+const linkWebsocketHandler = new WebSocketHandler(
+  "/api/v1/auth/link-ws",
+  "localhost:8080"
+);
+linkWebsocketHandler.listen(async (message) => {
   console.log(message);
+  if (message.startsWith("connect:")) {
+    const session = message.substring("connect:".length);
+    console.log(await $fetch("/api/v1/auth/fetch", {
+      headers: { Authorization: `Session ${session}` },
+    }));
+  }
 });

@@ -2,6 +2,7 @@ package dev.tradecraft.tradecraft.web
 
 import com.google.gson.GsonBuilder
 import dev.tradecraft.tradecraft.TradeCraft
+import dev.tradecraft.tradecraft.database.objects.User
 import dev.tradecraft.tradecraft.web.abst.WebHandler
 import dev.tradecraft.tradecraft.web.abst.WebRoute
 import dev.tradecraft.tradecraft.web.auth.AuthenticationManager
@@ -74,16 +75,31 @@ class WebManager : HttpHandler {
 
         var sourceAddress = exchange.sourceAddress.address
 
-        val forwardForHeader =
-            exchange.requestHeaders.find { it.headerName == Headers.X_FORWARDED_FOR }?.getOrNull(0)
-        if (forwardForHeader != null) {
-            val matches = trustedProxies.find { it.matches(sourceAddress.toString()) } != null
-            if (matches) {
-                sourceAddress = InetAddress.getByName(forwardForHeader)
+        var user: User? = null
+        if (exchange.requestHeaders.headerNames.contains(Headers.AUTHORIZATION)) {
+            val authorization = exchange.requestHeaders.get(Headers.AUTHORIZATION)[0].split(" ")
+            TradeCraft.logger.info(authorization[0] + " - " + authorization[1])
+            if (authorization.size == 2) {
+                val type = authorization[0]
+                when (type) {
+                    "Session" -> {
+                        val token = authorization[1]
+                        user = authenticationManager.sessionManager.fetchSession(token)
+                    }
+                }
             }
         }
 
-        val response = handler.handle(exchange, relativeUrl, sourceAddress, null)
+        if (exchange.requestHeaders.headerNames.contains(Headers.X_FORWARDED_FOR)) {
+            val forwardForHeader = exchange.requestHeaders.get(Headers.X_FORWARDED_FOR)[0]
+            val matches = trustedProxies.find { it.matches(sourceAddress.toString()) } != null
+            if (matches) {
+                sourceAddress = InetAddress.getByName(forwardForHeader.toString())
+            }
+        }
+
+
+        val response = handler.handle(exchange, relativeUrl, sourceAddress, user)
 
         if (response != null) {
             exchange.responseCode = response.code;
