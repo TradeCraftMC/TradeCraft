@@ -1,10 +1,10 @@
 @import "tailwindcss";
 
 @font-face {
-  font-family: "Alata";
-  src: url("/fonts/Alata-Regular.ttf");
+  font-family: "Inter";
+  src: url("/fonts/Inter.ttf");
 }
 
 @theme {
-  --font-sans: Alata, sans-serif;
+  --font-sans: Inter, sans-serif;
 }

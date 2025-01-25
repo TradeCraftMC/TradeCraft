@@ -4,7 +4,7 @@ export interface User {
 }
 
 export const useUser = () => useState<User | undefined>("user");
-export const useSessionToken = () => useState<string | undefined>("token");
+export const useSessionToken = () => useLocalState<string | undefined>("token");
 
 export async function updateUser() {
   const token = useSessionToken();

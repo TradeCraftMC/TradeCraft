@@ -45,7 +45,7 @@
 
         <div class="mt-3 px-2">
           <NuxtLink
-            href="/login"
+            :href="{ path: '/signin', query: route.query }"
             class="rounded-md inline-flex items-center justify-center ring-1 ring-zinc-800 px-3.5 py-2.5 w-full h-8 text-sm font-semibold text-white shadow-sm bg-zinc-800 hover:bg-zinc-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-600"
             >Login to your account</NuxtLink
           >
@@ -77,6 +77,7 @@ definePageMeta({
 
 const code = ref<string | undefined>();
 const error = ref<string | undefined>();
+const route = useRoute();
 const router = useRouter();
 
 linkWebsocket.listen((message) => {
@@ -96,7 +97,12 @@ linkWebsocket.listen((message) => {
           error.value = e.statusMessage;
         })
         .then(() => {
-          router.push("/");
+          const redirect = route.query.redirect?.toString();
+          if (redirect) {
+            router.push(redirect);
+          } else {
+            router.push("/");
+          }
         });
 
       break;

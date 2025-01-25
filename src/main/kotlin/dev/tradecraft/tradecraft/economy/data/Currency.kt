@@ -10,13 +10,17 @@ class Currency {
     @GeneratedValue(strategy = GenerationType.UUID)
     private val id: String = ""
     private val baseValue: Double = 1.0
+    private val canConvert: Boolean = true
 
     private val backer: CurrencyBacker = CurrencyBacker.Fiat
 
     @Convert(converter = MaterialConverter::class)
     private val backingMaterial: Material? = null
 
-    fun convertTo(amount: Int, target: Currency): Int {
+    fun convertTo(amount: Int, target: Currency): Int? {
+        if (!canConvert) {
+            return null
+        }
         val ratio = this.baseValue / target.baseValue
         val newAmount = ratio * amount
         return newAmount.toInt()

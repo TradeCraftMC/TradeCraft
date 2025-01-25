@@ -8,12 +8,13 @@ export default defineNuxtConfig({
     server: {
       proxy: {
         "/assets": "http://127.0.0.1:8080",
-        "/api": "http://127.0.0.1:8080"
+        "/api": "http://127.0.0.1:8080",
       },
     },
     plugins: [tailwindcss()],
   },
   css: ["~/assets/main.css"],
+  plugins: ["~/plugins/authenticated.ts"],
   app: {
     head: {
       link: [{ rel: "icon", href: "/assets/favicon.png" }],
