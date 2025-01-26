@@ -42,12 +42,15 @@ class WebManager : HttpHandler {
                 .filter { i -> i.implementsInterface(WebHandler::class.java) }
 
             routes.forEach {
-                val annotation = it.getAnnotationInfo(WebRoute::class.java)
-                val method = annotation.parameterValues[0].value.toString()
-                val path = annotation.parameterValues[1].value.toString()
-
                 val handler = it.loadClass().getConstructor().newInstance() as WebHandler
-                routeHandlers.getOrPut(path) { HashMap() }[method] = handler
+
+                val annotations = it.getAnnotationInfoRepeatable(WebRoute::class.java)
+                for (annotation in annotations) {
+                    val method = annotation.parameterValues[0].value.toString()
+                    val path = annotation.parameterValues[1].value.toString()
+
+                    routeHandlers.getOrPut(path) { HashMap() }[method] = handler
+                }
                 TradeCraft.logger.info("Registered web handler with name of " + handler.javaClass.name)
             }
         }
@@ -97,19 +100,18 @@ class WebManager : HttpHandler {
             }
         }
 
-
-        val response = handler.handle(exchange, relativeUrl, sourceAddress, user)
-
-        if (response != null) {
-            exchange.responseCode = response.code;
-            if (response.body != null) {
-                exchange.responseSender.send(ByteBuffer.wrap(response.body));
+        handler.handle(exchange, { response ->
+            if (response != null) {
+                exchange.responseCode = response.code;
+                if (response.headers != null) {
+                    exchange.responseHeaders.putAll(response.headers)
+                }
+                if (response.body != null) {
+                    exchange.responseSender.send(ByteBuffer.wrap(response.body));
+                }
             }
-            if (response.headers != null) {
-                exchange.responseHeaders.putAll(response.headers)
-            }
-        }
 
-        exchange.responseSender.close();
+            exchange.responseSender.close();
+        }, relativeUrl, sourceAddress, user)
     }
 }

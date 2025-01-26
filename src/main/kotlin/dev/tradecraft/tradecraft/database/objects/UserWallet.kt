@@ -27,7 +27,8 @@ class UserWallet : Wallet {
             return false
         }
 
-        val removeAmount = if (currency == this.currency) amount else currency.convertTo(amount, this.currency)
+        val removeAmount =
+            if (currency == this.currency) amount else currency.convertTo(amount, this.currency) ?: return false
         if (this.amount >= removeAmount) {
             this.amount -= removeAmount
             TradeCraft.databaseManager.useDatabaseSession { session ->
@@ -44,7 +45,8 @@ class UserWallet : Wallet {
             return false
         }
 
-        val addAmount = if (currency == this.currency) amount else currency.convertTo(amount, this.currency)
+        val addAmount =
+            if (currency == this.currency) amount else currency.convertTo(amount, this.currency) ?: return false
         this.amount += addAmount
         TradeCraft.databaseManager.useDatabaseSession { session ->
             session.merge(this)

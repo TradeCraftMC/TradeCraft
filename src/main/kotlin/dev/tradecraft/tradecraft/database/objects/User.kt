@@ -5,8 +5,7 @@ import dev.tradecraft.tradecraft.economy.data.VendorProfile
 import dev.tradecraft.tradecraft.economy.data.Currency
 import dev.tradecraft.tradecraft.economy.interfaces.Customer
 import jakarta.persistence.*
-import org.hibernate.annotations.JdbcTypeCode
-import org.hibernate.type.SqlTypes
+import org.hibernate.annotations.ColumnDefault
 
 @Entity
 class User : Customer {
@@ -14,6 +13,10 @@ class User : Customer {
     @GeneratedValue(strategy = GenerationType.UUID)
     val id: String = "";
     var playerUUID: String = ""
+    var name: String = ""
+
+    @ColumnDefault(value = "false")
+    var admin: Boolean = false
 
     @OneToOne(cascade = [(CascadeType.ALL)])
     var vendorProfile: VendorProfile? = null

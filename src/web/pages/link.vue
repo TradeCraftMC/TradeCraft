@@ -81,7 +81,6 @@ const route = useRoute();
 const router = useRouter();
 
 linkWebsocket.listen((message) => {
-  console.log(message);
   const [control, ...content] = message.split(":");
   switch (control) {
     case "code":
@@ -92,19 +91,19 @@ linkWebsocket.listen((message) => {
 
       const token = useSessionToken();
       token.value = content[0];
-      updateUser()
-        .catch((e) => {
-          error.value = e.statusMessage;
-        })
-        .then(() => {
+      updateUser().then(
+        () => {
           const redirect = route.query.redirect?.toString();
           if (redirect) {
             router.push(redirect);
           } else {
             router.push("/");
           }
-        });
-
+        },
+        (e) => {
+          error.value = e.statusMessage;
+        }
+      );
       break;
   }
 });

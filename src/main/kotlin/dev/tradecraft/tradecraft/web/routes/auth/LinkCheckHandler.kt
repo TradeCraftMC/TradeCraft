@@ -9,17 +9,22 @@ import dev.tradecraft.tradecraft.web.abst.WebHandler
 import dev.tradecraft.tradecraft.web.abst.WebRoute
 import io.undertow.server.HttpServerExchange
 import java.net.InetAddress
+import java.util.function.Consumer
 
 @WebRoute(path = "/api/v1/auth/link", method = "GET")
 class LinkCheckHandler : WebHandler {
-    override fun handle(request: HttpServerExchange, ip: InetAddress, user: User?): HttpResponse? {
+    override fun handle(
+        request: HttpServerExchange, response: Consumer<HttpResponse?>, ip: InetAddress, user: User?
+    ): Any? {
         val failResponse =
             HttpResponse(200, WebManager.serializeBody(SimpleAPIResponse(200, "Invalid or expired code", false)))
-        val code = request.queryParameters["code"] ?: return failResponse
+        val code = request.queryParameters["code"] ?: return response.accept(failResponse)
 
         val result = TradeCraft.webManager.authenticationManager.linkManager.checkLink(code.toString());
-        return if (result) HttpResponse(
-            200, WebManager.serializeBody(SimpleAPIResponse(200, "Valid code", true))
-        ) else failResponse
+        return response.accept(
+            if (result) HttpResponse(
+                200, WebManager.serializeBody(SimpleAPIResponse(200, "Valid code", true))
+            ) else failResponse
+        )
     }
 }

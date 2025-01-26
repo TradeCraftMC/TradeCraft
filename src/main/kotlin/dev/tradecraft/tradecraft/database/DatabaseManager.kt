@@ -12,6 +12,7 @@ import org.hibernate.boot.MetadataSources
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder
 import org.hibernate.cfg.Configuration
 import java.util.function.Consumer
+import java.util.function.Function
 
 class DatabaseManager{
     private val sessionFactory: SessionFactory;
@@ -41,10 +42,12 @@ class DatabaseManager{
         }
     }
 
-    fun useDatabaseSession(func: Consumer<Session>) {
+    fun <T> useDatabaseSession(func: Function<Session, T>): T? {
+        var value: T? = null;
         sessionFactory.inTransaction { session ->
-            func.accept(session)
+            value = func.apply(session)
         }
+        return value;
     }
 
     fun createVirtualInventory(playerUUID: String): VirtualPlayerInventoryState {

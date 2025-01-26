@@ -2726,7 +2726,7 @@ gzip-size@^7.0.0:
   dependencies:
     duplexer "^0.1.2"
 
-h3@^1.12.0, h3@^1.13.0, h3@^1.13.1:
+h3@^1.12.0, h3@^1.13.0, h3@^1.13.1, h3@^1.14.0:
   version "1.14.0"
   resolved "https://registry.yarnpkg.com/h3/-/h3-1.14.0.tgz#292bf0602444b36fd6b333b1d6872d685ecc9899"
   integrity sha512-ao22eiONdgelqcnknw0iD645qW0s9NnrJHr5OBz4WOMdBdycfSas1EQf1wXRsm+PcB2Yoj43pjBPwqIpJQTeWg==

@@ -1,20 +1,28 @@
 import type { RouteLocationNormalizedGeneric } from "vue-router";
 
-export default defineNuxtPlugin((nuxtApp) => {
+export default defineNuxtPlugin(async (nuxtApp) => {
   // Skip plugin when rendering error page
   if (nuxtApp.payload.error) {
-    return {};
+    return;
   }
 
   const user = useUser();
-  const isLoggedIn = computed(() => user != undefined);
+  if (user.value === undefined) {
+    try {
+      await updateUser();
+    } catch {}
+  }
+  const isLoggedIn = computed(() => !!user.value);
 
   function checkRedirect(
     to: RouteLocationNormalizedGeneric,
-    isLoggedIn: boolean
+    loggedIn: boolean
   ) {
-    if (to.meta.auth && !isLoggedIn) {
+    if (to.meta.auth && !loggedIn) {
       return navigateTo({ path: "/link", query: { redirect: to.fullPath } });
+    }
+    if (loggedIn && to.meta.admin && user.value?.admin == false) {
+      return navigateTo("/noauth");
     }
     return undefined;
   }

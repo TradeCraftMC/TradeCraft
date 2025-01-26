@@ -19,11 +19,11 @@
           <ul role="list" class="flex flex-1 flex-col gap-y-7">
             <li>
               <ul role="list" class="-mx-2 space-y-1">
-                <li v-for="item in navigation" :key="item.name">
+                <li v-for="(item, itemIdx) in navigation" :key="item.name">
                   <NuxtLink
                     :href="item.href"
                     :class="[
-                      item.current
+                      itemIdx == currentNavigationIndex
                         ? 'bg-zinc-800 text-cyan-200'
                         : 'text-zinc-400 hover:bg-zinc-800/40 hover:text-cyan-100',
                       'transition group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold',
@@ -32,7 +32,10 @@
                     <div class="relative">
                       <component
                         :is="item.icon"
-                        :class="[item.current ? '' : '', 'size-6 shrink-0']"
+                        :class="[
+                          itemIdx == currentNavigationIndex ? '' : '',
+                          'size-6 shrink-0',
+                        ]"
                         aria-hidden="true"
                       />
                       <span
@@ -183,14 +186,7 @@ enum DashboardMode {
   Company,
 }
 
-const route = useRoute();
 const router = useRouter();
-
-const currentPath = ref(route.path);
-router.beforeEach((to, _, next) => {
-  currentPath.value = to.path;
-  next();
-});
 
 const user = useUser();
 const vendors = [
@@ -210,8 +206,10 @@ const vendors = [
 const currentVendor = ref(vendors[0]);
 const dashboardMode = computed(() => currentVendor.value.type);
 
-const navigation = computed(() => {
-  const nav = [
+const route = useRoute();
+
+const navigation = computed(() =>
+  [
     { name: "Dashboard", href: "/dashboard", icon: HomeIcon },
     dashboardMode.value == DashboardMode.Company && {
       name: "Partners",
@@ -245,16 +243,12 @@ const navigation = computed(() => {
       icon: Cog6ToothIcon,
     },
     { name: "Analytics", href: "/dashboard/analytics", icon: ChartPieIcon },
-  ].filter((e) => e !== false);
-
-  return nav.map((e) => ({
-    ...e,
-    current: e.href == currentPath.value,
-  }));
-});
+  ].filter((e) => e !== false)
+);
+const currentNavigationIndex = useCurrentNavigationIndex(navigation);
 
 function leaveDeadPages() {
-  if (navigation.value.findIndex((e) => e.href == currentPath.value) == -1) {
+  if (navigation.value.findIndex((e) => e.href == route.path) == -1) {
     router.push(navigation.value[0].href);
   }
 }

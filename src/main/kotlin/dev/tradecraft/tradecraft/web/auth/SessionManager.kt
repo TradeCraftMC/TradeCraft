@@ -1,5 +1,6 @@
 package dev.tradecraft.tradecraft.web.auth
 
+import dev.tradecraft.tradecraft.TradeCraft
 import dev.tradecraft.tradecraft.database.objects.User
 import java.net.InetAddress
 import java.util.*
@@ -23,6 +24,7 @@ class SessionManager {
 
     fun fetchSession(token: String): User? {
         val session = sessions[token] ?: return null
+
         val currentTime = System.currentTimeMillis()
         if (session.expiry < currentTime) {
             sessions.remove(token)

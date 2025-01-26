@@ -15,6 +15,9 @@ repositories {
     maven("https://oss.sonatype.org/content/groups/public/") {
         name = "sonatype"
     }
+    maven("https://jitpack.io") {
+        name = "jitpack"
+    }
 }
 
 val embed: Configuration by configurations.creating
@@ -23,8 +26,10 @@ configurations.compileOnly.get().extendsFrom(embed)
 dependencies {
     compileOnly("org.spigotmc:spigot-api:1.21.4-R0.1-SNAPSHOT")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+    implementation(kotlin("reflect"))
 
     embed("io.github.classgraph:classgraph:4.8.179")
+    compileOnly("com.github.MilkBowl:VaultAPI:1.7")
 
     // Database
     embed("org.hibernate.orm:hibernate-core:6.6.5.Final")
