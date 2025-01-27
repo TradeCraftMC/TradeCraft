@@ -119,6 +119,10 @@ definePageMeta({
   auth: true,
 });
 
+useHead({
+  title: "Currencies",
+});
+
 const currentCurrency = ref<undefined | Currency>();
 const currentCurrencyLoading = ref<boolean>(false);
 const currentCurrencyError = ref<string | undefined>(undefined);

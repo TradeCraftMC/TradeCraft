@@ -12,13 +12,13 @@ import jakarta.persistence.ManyToOne
 class UserWallet : Wallet {
     @Id
     @ManyToOne(optional = false)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "userId", nullable = false)
     private val user: User? = null
 
     private var amount: Int = 0
 
     @ManyToOne
-    @JoinColumn(name = "currency_id")
+    @JoinColumn(name = "currencyId")
     private val currency: Currency? = null
 
 

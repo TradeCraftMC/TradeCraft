@@ -1,6 +1,10 @@
 package dev.tradecraft.tradecraft.web
 
-import com.google.gson.GsonBuilder
+import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.ObjectReader
+import com.fasterxml.jackson.databind.ObjectWriter
+import com.fasterxml.jackson.datatype.hibernate6.Hibernate6Module
 import dev.tradecraft.tradecraft.TradeCraft
 import dev.tradecraft.tradecraft.database.objects.User
 import dev.tradecraft.tradecraft.web.abst.WebHandler
@@ -27,9 +31,19 @@ class WebManager : HttpHandler {
     val authenticationManager = AuthenticationManager()
 
     companion object {
-        val webGson = GsonBuilder().create()
+        private val mapper =
+            ObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).registerModule(Hibernate6Module())
+        val webWriter: ObjectWriter = mapper.writer()
+        val webReader: ObjectReader = mapper.reader()
 
-        fun serializeBody(obj: Any): ByteArray = webGson.toJson(obj).encodeToByteArray()
+        fun serializeBody(obj: Any): ByteArray {
+            try {
+                return webWriter.writeValueAsString(obj).encodeToByteArray()
+            } catch (e: Exception) {
+                e.printStackTrace()
+                throw e;
+            }
+        }
     }
 
     init {

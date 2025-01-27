@@ -10,9 +10,9 @@ class LimitedDiscount {
     var id: String = ""
 
     @ManyToOne
-    @JoinColumn(name = "listing_id")
+    @JoinColumn(name = "listingId")
     val listing: Listing = Listing()
 
     val multiplier: Double = 1.0
-    val ends: Date = Date()
+    val ends: Long = Date().time
 }

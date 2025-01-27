@@ -8,12 +8,14 @@ import dev.tradecraft.tradecraft.web.abst.SimpleAPIResponse
 import dev.tradecraft.tradecraft.web.abst.WebHandler
 import io.undertow.server.HttpServerExchange
 import jakarta.persistence.Column
+import jakarta.persistence.Id
 import jakarta.persistence.NoResultException
 import java.net.InetAddress
 import java.nio.charset.StandardCharsets
 import java.util.function.Consumer
 import kotlin.reflect.KClass
 import kotlin.reflect.KMutableProperty
+import kotlin.reflect.full.hasAnnotation
 import kotlin.reflect.full.memberProperties
 
 abstract class CrudHandler<T : Any>(kotlinType: KClass<out T>) : WebHandler {
@@ -25,6 +27,7 @@ abstract class CrudHandler<T : Any>(kotlinType: KClass<out T>) : WebHandler {
     private val indexedJavaFields = javaFields.associateBy { it.name }
 
     abstract fun authenticate(user: User?, method: String): Boolean
+    abstract fun checkBlacklist(user: User?, field: KMutableProperty<*>): Boolean
 
     private fun handleRead(request: HttpServerExchange, response: Consumer<HttpResponse?>) {
         val id = request.queryParameters["id"]
@@ -53,16 +56,18 @@ abstract class CrudHandler<T : Any>(kotlinType: KClass<out T>) : WebHandler {
         return;
     }
 
-    private fun assignAndValidateProperties(data: Map<String, Any>, obj: Any, existingId: String? = null): HttpResponse? {
+    private fun assignAndValidateProperties(
+        data: Map<String, Any>, obj: Any, user: User?, existingId: String? = null
+    ): HttpResponse? {
         for ((key, value) in data) {
             val field = indexedFields[key]
 
             val invalidResponse = HttpResponse.createJSONResponse(
                 400, SimpleAPIResponse(400, "Invalid parameter '$key'", false)
             );
-            if (field == null) {
-                return invalidResponse;
-            }
+            if (field == null) return invalidResponse;
+            if (field.hasAnnotation<Id>()) return invalidResponse;
+            if (!checkBlacklist(user, field)) return invalidResponse;
 
             val fieldClass = field.returnType.classifier as KClass<*>
 
@@ -112,19 +117,19 @@ abstract class CrudHandler<T : Any>(kotlinType: KClass<out T>) : WebHandler {
         // I can't find a way to lookup the intersection of columns between rows in SQL
         // so string concatenation it is
         var uniqueQuery = "select * from $resourceName where ";
-        if(existingId != null) {
+        if (existingId != null) {
             uniqueQuery += "id <> :id and ";
         }
         uniqueQuery += "(";
-        uniqueQuery += uniqueFieldMap.map { (key, _) -> "$key = :$key" }.joinToString (" or ")
+        uniqueQuery += uniqueFieldMap.map { (key, _) -> "$key = :$key" }.joinToString(" or ")
         uniqueQuery += ")"
 
         val existing = TradeCraft.databaseManager.useDatabaseSession {
             val query = it.createNativeQuery(uniqueQuery, type)
-            if(existingId != null){
+            if (existingId != null) {
                 query.setParameter("id", existingId)
             }
-            for((key, value) in uniqueFieldMap) {
+            for ((key, value) in uniqueFieldMap) {
                 query.setParameter(key, value)
             }
             query.resultList
@@ -139,14 +144,14 @@ abstract class CrudHandler<T : Any>(kotlinType: KClass<out T>) : WebHandler {
         return null
     }
 
-    private fun handleCreate(request: HttpServerExchange, response: Consumer<HttpResponse?>) {
+    private fun handleCreate(request: HttpServerExchange, response: Consumer<HttpResponse?>, user: User?) {
         request.requestReceiver.receiveFullBytes { exchange: HttpServerExchange, bytes: ByteArray ->
             val stringData = String(bytes, StandardCharsets.UTF_8)
-            val rawData = WebManager.webGson.fromJson<Map<String, Any>>(stringData, Map::class.java);
+            val rawData = WebManager.webReader.readValue<Map<String, Any>>(stringData);
 
             val obj = type.getConstructor().newInstance()!!
 
-            val error = assignAndValidateProperties(rawData, obj)
+            val error = assignAndValidateProperties(rawData, obj, user)
             if (error != null) {
                 response.accept(error);
                 return@receiveFullBytes;
@@ -159,10 +164,10 @@ abstract class CrudHandler<T : Any>(kotlinType: KClass<out T>) : WebHandler {
         }
     }
 
-    private fun handleUpdate(request: HttpServerExchange, response: Consumer<HttpResponse?>) {
+    private fun handleUpdate(request: HttpServerExchange, response: Consumer<HttpResponse?>, user: User?) {
         request.requestReceiver.receiveFullBytes { exchange: HttpServerExchange, bytes: ByteArray ->
             val stringData = String(bytes, StandardCharsets.UTF_8)
-            val rawData = WebManager.webGson.fromJson<HashMap<String, Any>>(stringData, HashMap::class.java);
+            val rawData = WebManager.webReader.readValue<HashMap<String, Any>>(stringData);
 
             val id = rawData["id"]?.toString()
             if (id == null) {
@@ -180,7 +185,7 @@ abstract class CrudHandler<T : Any>(kotlinType: KClass<out T>) : WebHandler {
 
                 rawData.remove("id")
 
-                val error = assignAndValidateProperties(rawData, obj, id)
+                val error = assignAndValidateProperties(rawData, obj, user, id)
                 if (error != null) {
                     response.accept(error);
                     return@receiveFullBytes;
@@ -206,7 +211,7 @@ abstract class CrudHandler<T : Any>(kotlinType: KClass<out T>) : WebHandler {
     private fun handleDelete(request: HttpServerExchange, response: Consumer<HttpResponse?>) {
         request.requestReceiver.receiveFullBytes { exchange: HttpServerExchange, bytes: ByteArray ->
             val stringData = String(bytes, StandardCharsets.UTF_8)
-            val rawData = WebManager.webGson.fromJson<Map<String, Any>>(stringData, Map::class.java);
+            val rawData = WebManager.webReader.readValue<Map<String, Any>>(stringData);
 
             val id = rawData["id"]?.toString()
             if (id == null) {
@@ -246,8 +251,8 @@ abstract class CrudHandler<T : Any>(kotlinType: KClass<out T>) : WebHandler {
 
         when (request.requestMethod.toString()) {
             "GET" -> return handleRead(request, response)
-            "POST" -> return handleCreate(request, response)
-            "PATCH" -> return handleUpdate(request, response)
+            "POST" -> return handleCreate(request, response, user)
+            "PATCH" -> return handleUpdate(request, response, user)
             "DELETE" -> return handleDelete(request, response)
         }
 

@@ -31,8 +31,6 @@ class VirtualPlayerInventory(state: VirtualPlayerInventoryState, player: Offline
             val state = TradeCraft.databaseManager.fetchVirtualInventory(player.uniqueId.toString()) ?: return false
             val virtualPlayerInventory = VirtualPlayerInventory(state, player);
 
-            println(state)
-
             val onlinePlayer = player.player;
             if (onlinePlayer != null) {
                 val playerInventory = onlinePlayer.inventory;
@@ -58,8 +56,6 @@ class VirtualPlayerInventory(state: VirtualPlayerInventoryState, player: Offline
         state.inventory = inventory.storageContents.toList();
         state.extra = inventory.extraContents.toList();
         state.maxStackSize = inventory.maxStackSize;
-
-        println(state.inventory.size)
 
         TradeCraft.databaseManager.updateVirtualInventory(state)
     }

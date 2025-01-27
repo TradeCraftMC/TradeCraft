@@ -1,14 +1,22 @@
 package dev.tradecraft.tradecraft.database.objects
 
+import dev.tradecraft.tradecraft.TradeCraft
 import dev.tradecraft.tradecraft.economy.data.Listing
 import dev.tradecraft.tradecraft.economy.data.VendorProfile
 import dev.tradecraft.tradecraft.economy.data.Currency
 import dev.tradecraft.tradecraft.economy.interfaces.Customer
 import jakarta.persistence.*
+import org.bukkit.entity.Player
 import org.hibernate.annotations.ColumnDefault
 
 @Entity
 class User : Customer {
+    companion object {
+        fun fetchByPlayerUuid(player: Player): User {
+            return TradeCraft.webManager.authenticationManager.fetchOrCreateUser(player.uniqueId.toString())
+        }
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     val id: String = "";

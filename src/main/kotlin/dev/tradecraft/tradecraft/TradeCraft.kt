@@ -1,6 +1,7 @@
 package dev.tradecraft.tradecraft
 
 import dev.tradecraft.tradecraft.commands.AuthorizeCommand
+import dev.tradecraft.tradecraft.commands.CreateVendorCommand
 import dev.tradecraft.tradecraft.config.TradeCraftConfiguration
 import dev.tradecraft.tradecraft.database.DatabaseManager
 import dev.tradecraft.tradecraft.database.converters.ItemStackConverter
@@ -43,6 +44,8 @@ class TradeCraft : JavaPlugin() {
 
         val authorizeCommand = AuthorizeCommand()
         getCommand("authorize")!!.setExecutor(authorizeCommand)
+        val createVendorCommand = CreateVendorCommand()
+        getCommand("createvendor")!!.setExecutor(createVendorCommand)
     }
 
     override fun onDisable() {

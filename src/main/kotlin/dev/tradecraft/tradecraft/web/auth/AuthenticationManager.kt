@@ -11,7 +11,7 @@ class AuthenticationManager {
     val sessionManager: SessionManager = SessionManager()
     val linkManager: LinkManager = LinkManager()
 
-    private fun fetchOrCreateUser(playerUuid: String): User {
+    fun fetchOrCreateUser(playerUuid: String): User {
         val player = Bukkit.getOfflinePlayer(UUID.fromString(playerUuid))
         val onlinePlayer = player.player
 

@@ -42,7 +42,8 @@ dependencies {
     // Web
     embed("io.undertow:undertow-core:2.3.18.Final")
     embed("io.undertow:undertow-websockets-jsr:2.3.18.Final")
-    embed("com.google.code.gson:gson:2.11.0")
+    embed("com.fasterxml.jackson.core:jackson-databind:2.18.2")
+    embed("com.fasterxml.jackson.datatype:jackson-datatype-hibernate6:2.18.2")
     embed("org.springframework.security:spring-security-web:6.4.2")
 }
 

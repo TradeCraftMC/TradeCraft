@@ -249,7 +249,7 @@ const config = useAPIConfig();
 
 useHead({
     titleTemplate(title) {
-        return title ? `${title} | Admin | Drop` : `Admin Dashboard | Drop`;
+        return title ? `${title} | Admin | ${config.value.appName}` : `Admin Dashboard | ${config.value.appName}`;
     },
 });
 </script>

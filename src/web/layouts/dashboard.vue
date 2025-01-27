@@ -1,5 +1,8 @@
 <template>
-  <div class="min-h-screen w-screen bg-zinc-950 flex flex-col">
+  <div
+    v-if="currentVendor"
+    class="min-h-screen w-screen bg-zinc-950 flex flex-col"
+  >
     <!-- Static sidebar for desktop -->
     <div
       class="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col"
@@ -189,22 +192,14 @@ enum DashboardMode {
 const router = useRouter();
 
 const user = useUser();
-const vendors = [
-  {
-    id: "dkasldkas",
-    name: "Personal",
-    icon: `https://mc-heads.net/head/${user.value?.playerUUID}`,
-    type: DashboardMode.UserVendor,
-  },
-  {
-    id: "DJAKSjdasjkd",
-    name: "Globe Foundation",
-    icon: "",
-    type: DashboardMode.Company,
-  },
-];
-const currentVendor = ref(vendors[0]);
-const dashboardMode = computed(() => currentVendor.value.type);
+const vendors: {
+  id: string;
+  name: string;
+  icon: string;
+  type: DashboardMode;
+}[] = [];
+const currentVendor = ref<(typeof vendors)[0] | undefined>(vendors?.[0]);
+const dashboardMode = computed(() => currentVendor.value?.type);
 
 const route = useRoute();
 

@@ -7,10 +7,10 @@ import jakarta.persistence.*
 class VendorProfile : Vendor {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    var id: String = ""
+    val id: String = ""
 
     @OneToMany(cascade = [(CascadeType.ALL)])
-    val listings: List<Listing> = emptyList()
+    val listings: MutableList<Listing> = emptyList<Listing>().toMutableList()
 
     override fun fetch(): List<Listing> = listings
     override fun profile(): VendorProfile = this

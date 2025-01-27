@@ -13,17 +13,17 @@ class Listing {
     var id: String = ""
 
     @ManyToOne
-    @JoinColumn(name = "vendor_id")
-    val vendor: VendorProfile = VendorProfile() // The vendor selling this item
+    @JoinColumn(name = "vendorId")
+    var vendor: VendorProfile = VendorProfile() // The vendor selling this item
 
     @JdbcTypeCode(SqlTypes.JSON)
-    val costs: HashMap<Int, Pair<Int, Currency>> = HashMap() // Purchase threshold to particular unit cost
+    var costs: HashMap<Int, Pair<Int, Currency>> = HashMap() // Purchase threshold to particular unit cost
 
-    val stock: Int = 0 // Remaining stock
+    var stock: Int = 0 // Remaining stock
 
     @Convert(converter = ItemStackConverter::class)
-    val contents: List<ItemStack> = emptyList() // What's in a single purchase
+    val contents: MutableList<ItemStack> = emptyList<ItemStack>().toMutableList() // What's in a single purchase
 
     @OneToMany(cascade = [CascadeType.ALL])
-    val discounts: List<LimitedDiscount> = emptyList()
+    var discounts: MutableList<LimitedDiscount> = emptyList<LimitedDiscount>().toMutableList()
 }
