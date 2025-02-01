@@ -9,13 +9,13 @@ TradeCraft is a complex plugin designed to support complex economies. As a basel
 Currencies are intented to mimick actual currencies, where they are either backed with:
 
 - Fiat (authority, essentially they are just created by a government. A certain amount is created weekly and deposited into the 'federal' account)
-- Material (based on a material, like gold)
+- Material (is a material, like gold or diamonds. Each unit of this currency is equivalent to a single item of that material)
 
 Admins can create either kind of currency. Their values are then dynamically determined using a supply-demand model.
 
 Players and companies have separate wallets for each currency, but they can also convert freely between them at the given exchange rate. 
 
-### Federal actions
+### Federal 'government'
 To simulate a functioning economy, currencies need to inflate. Material currencies will naturally inflate as players get more of it and progress into the end game (some will become worthless due to some in-game farms). Fiat currencies, however, need 'federal' actions to inflate. 
 
 The server admin can assign a committee of players to fund jobs, which introduce money into the economy.
