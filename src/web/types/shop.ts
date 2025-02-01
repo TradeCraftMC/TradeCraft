@@ -9,14 +9,14 @@ export interface LimitedDiscount {
 }
 
 export interface Listing {
-  vendor: VendorProfile;
+  vendor: Brand;
   costs: { [key: number]: [number, Currency] };
   stock: number;
   contents: Array<ItemStack>;
   discounts: Array<LimitedDiscount>;
 }
 
-export interface VendorProfile {
+export interface Brand {
   id: string;
   listings: Array<Listing>;
 }

@@ -8,8 +8,8 @@ commands:
     description: Authorize a web session with your Minecraft account
     usage: /authorize <code>
     permission: tradecraft.authorize
-  createvendor:
-    usage: /createvendor
+  createbrand:
+    usage: /createbrand
 permissions:
   tradecraft.authorize:
     description: Allows user to use /authorize to connect to the web UI

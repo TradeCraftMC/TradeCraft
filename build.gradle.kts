@@ -7,6 +7,7 @@ plugins {
 group = "dev.tradecraft"
 version = "1.0-SNAPSHOT"
 
+
 repositories {
     mavenCentral()
     maven("https://hub.spigotmc.org/nexus/content/repositories/snapshots/") {
@@ -50,6 +51,9 @@ dependencies {
 val targetJavaVersion = 21
 kotlin {
     jvmToolchain(targetJavaVersion)
+    compilerOptions {
+        javaParameters = true
+    }
 }
 
 tasks.build {

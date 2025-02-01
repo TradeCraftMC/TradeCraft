@@ -137,6 +137,7 @@
 
     <main class="hidden lg:block py-10 lg:pl-72">
       <div class="px-4 sm:px-6 lg:px-8">
+        {{ user?.brand }}
         <slot />
       </div>
     </main>
@@ -197,7 +198,7 @@ const vendors: {
   name: string;
   icon: string;
   type: DashboardMode;
-}[] = [];
+}[] = [user.value?.brand].filter((e) => e);
 const currentVendor = ref<(typeof vendors)[0] | undefined>(vendors?.[0]);
 const dashboardMode = computed(() => currentVendor.value?.type);
 

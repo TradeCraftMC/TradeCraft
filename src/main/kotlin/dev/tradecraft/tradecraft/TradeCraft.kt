@@ -1,18 +1,12 @@
 package dev.tradecraft.tradecraft
 
 import dev.tradecraft.tradecraft.commands.AuthorizeCommand
-import dev.tradecraft.tradecraft.commands.CreateVendorCommand
+import dev.tradecraft.tradecraft.commands.CreateBrandCommand
 import dev.tradecraft.tradecraft.config.TradeCraftConfiguration
 import dev.tradecraft.tradecraft.database.DatabaseManager
-import dev.tradecraft.tradecraft.database.converters.ItemStackConverter
 import dev.tradecraft.tradecraft.virtualplayerinventory.VirtualPlayerInventoryListener
 import dev.tradecraft.tradecraft.web.WebManager
 import net.milkbowl.vault.permission.Permission
-import org.bukkit.Material
-import org.bukkit.command.CommandExecutor
-import org.bukkit.command.CommandSender
-import org.bukkit.inventory.ItemStack
-import org.bukkit.plugin.RegisteredServiceProvider
 import org.bukkit.plugin.java.JavaPlugin
 import java.util.logging.Logger
 
@@ -44,8 +38,8 @@ class TradeCraft : JavaPlugin() {
 
         val authorizeCommand = AuthorizeCommand()
         getCommand("authorize")!!.setExecutor(authorizeCommand)
-        val createVendorCommand = CreateVendorCommand()
-        getCommand("createvendor")!!.setExecutor(createVendorCommand)
+        val createBrandCommand = CreateBrandCommand()
+        getCommand("createbrand")!!.setExecutor(createBrandCommand)
     }
 
     override fun onDisable() {

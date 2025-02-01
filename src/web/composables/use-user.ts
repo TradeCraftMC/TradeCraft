@@ -1,11 +1,14 @@
-export interface User {  
+import type { Brand } from "~/types/shop";
+
+export interface User {
   id: string;
   name?: string;
 
   playerUUID: string;
-  admin: boolean
+  admin: boolean;
 
-  vendorProfile?: {}
+  // User's personal brand
+  brand?: Brand;
 }
 
 export const useUser = () => useState<User | null | undefined>("user");

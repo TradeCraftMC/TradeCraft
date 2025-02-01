@@ -9,8 +9,10 @@ import dev.tradecraft.tradecraft.TradeCraft
 import dev.tradecraft.tradecraft.database.objects.User
 import dev.tradecraft.tradecraft.web.abst.WebHandler
 import dev.tradecraft.tradecraft.web.abst.WebRoute
+import dev.tradecraft.tradecraft.web.abst.WebRoutePrefix
 import dev.tradecraft.tradecraft.web.auth.AuthenticationManager
 import dev.tradecraft.tradecraft.web.routes.auth.WebsocketLinkHandler
+import dev.tradecraft.tradecraft.web.serialization.ItemStackModule
 import io.github.classgraph.ClassGraph
 import io.undertow.Handlers
 import io.undertow.Undertow
@@ -25,6 +27,7 @@ import kotlin.io.path.Path
 class WebManager : HttpHandler {
     private val server: Undertow
     private val routeHandlers: HashMap<String, HashMap<String, WebHandler>> = HashMap()
+    private val routePrefixHandlers: HashMap<String, WebHandler> = HashMap()
     private val fallbackHandler: FallbackHandler = FallbackHandler()
     private val trustedProxies: List<IpAddressMatcher> =
         TradeCraft.configuration.getTrustedProxies().map { IpAddressMatcher(it) }
@@ -33,6 +36,7 @@ class WebManager : HttpHandler {
     companion object {
         private val mapper =
             ObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).registerModule(Hibernate6Module())
+                .registerModules(ItemStackModule.create())
         val webWriter: ObjectWriter = mapper.writer()
         val webReader: ObjectReader = mapper.reader()
 
@@ -52,7 +56,7 @@ class WebManager : HttpHandler {
             ClassGraph().acceptPackages("dev.tradecraft.tradecraft.web.routes").enableAnnotationInfo().enableClassInfo()
                 .scan()
         possibleRoutes.use {
-            val routes = it.getClassesWithAnnotation(WebRoute::class.java)
+            val routes = it.getClassesWithAnyAnnotation(WebRoute::class.java, WebRoutePrefix::class.java)
                 .filter { i -> i.implementsInterface(WebHandler::class.java) }
 
             routes.forEach {
@@ -65,6 +69,13 @@ class WebManager : HttpHandler {
 
                     routeHandlers.getOrPut(path) { HashMap() }[method] = handler
                 }
+
+                val annotation = it.getAnnotationInfo(WebRoutePrefix::class.java)
+                if (annotation != null) {
+                    val prefix = annotation.parameterValues[0].value.toString()
+                    routePrefixHandlers.put(prefix, handler)
+                }
+
                 TradeCraft.logger.info("Registered web handler with name of " + handler.javaClass.name)
             }
         }
@@ -88,7 +99,11 @@ class WebManager : HttpHandler {
             "/${canonicalPath.substring(TradeCraft.configuration.getWebBaseUrl().length).trimStart('/').trimEnd(('/'))}"
         val method = exchange.requestMethod.toString().uppercase()
 
-        val handler = routeHandlers[relativeUrl]?.get(method) ?: fallbackHandler
+        val handler = routeHandlers[relativeUrl]?.get(method) ?: routePrefixHandlers.filter {
+            relativeUrl.startsWith(
+                it.key
+            )
+        }.values.firstOrNull() ?: fallbackHandler
 
         var sourceAddress = exchange.sourceAddress.address
 
@@ -114,8 +129,21 @@ class WebManager : HttpHandler {
             }
         }
 
+        var handled = false;
         handler.handle(exchange, { response ->
             if (response != null) {
+                if (handled) {
+                    TradeCraft.logger.warning(
+                        "response.accept called more than once, skipping response (${response.code} ${
+                            response.body?.let {
+                                java.lang.String(
+                                    it
+                                )
+                            }
+                        })")
+                    return@handle;
+                }
+                handled = true
                 exchange.responseCode = response.code;
                 if (response.headers != null) {
                     exchange.responseHeaders.putAll(response.headers)

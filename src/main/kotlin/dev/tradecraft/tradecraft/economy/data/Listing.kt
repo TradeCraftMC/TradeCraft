@@ -14,7 +14,7 @@ class Listing {
 
     @ManyToOne
     @JoinColumn(name = "vendorId")
-    var vendor: VendorProfile = VendorProfile() // The vendor selling this item
+    var vendor: Brand = Brand() // The vendor selling this item
 
     @JdbcTypeCode(SqlTypes.JSON)
     var costs: HashMap<Int, Pair<Int, Currency>> = HashMap() // Purchase threshold to particular unit cost

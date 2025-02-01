@@ -1,7 +1,6 @@
 package dev.tradecraft.tradecraft.database
 
 import dev.tradecraft.tradecraft.TradeCraft
-import dev.tradecraft.tradecraft.config.TradeCraftConfiguration
 import dev.tradecraft.tradecraft.database.objects.User
 import dev.tradecraft.tradecraft.database.objects.UserWallet
 import dev.tradecraft.tradecraft.database.objects.VirtualPlayerInventoryState
@@ -11,7 +10,6 @@ import org.hibernate.SessionFactory
 import org.hibernate.boot.MetadataSources
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder
 import org.hibernate.cfg.Configuration
-import java.util.function.Consumer
 import java.util.function.Function
 
 class DatabaseManager{
@@ -23,7 +21,7 @@ class DatabaseManager{
         try {
             val metadataSources = MetadataSources(registry).addAnnotatedClasses(
                 User::class.java, UserWallet::class.java, VirtualPlayerInventoryState::class.java,
-                VendorProfile::class.java,
+                Brand::class.java,
                 Listing::class.java, LimitedDiscount::class.java, Currency::class.java,
             )
             val dbConfiguration = Configuration(metadataSources);
