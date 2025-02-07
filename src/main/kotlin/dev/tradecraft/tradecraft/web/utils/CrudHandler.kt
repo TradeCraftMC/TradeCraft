@@ -1,5 +1,8 @@
 package dev.tradecraft.tradecraft.web.utils
 
+import com.fasterxml.jackson.core.JsonProcessingException
+import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.node.ObjectNode
 import dev.tradecraft.tradecraft.TradeCraft
 import dev.tradecraft.tradecraft.database.objects.User
 import dev.tradecraft.tradecraft.web.WebManager
@@ -57,9 +60,9 @@ abstract class CrudHandler<T : Any>(kotlinType: KClass<out T>) : WebHandler {
     }
 
     private fun assignAndValidateProperties(
-        data: Map<String, Any>, obj: Any, user: User?, existingId: String? = null
+        json: JsonNode, obj: Any, user: User?, existingId: String? = null
     ): HttpResponse? {
-        for ((key, value) in data) {
+        for ((key, jsonNode) in json.fields()) {
             val field = indexedFields[key]
 
             val invalidResponse = HttpResponse.createJSONResponse(
@@ -72,8 +75,8 @@ abstract class CrudHandler<T : Any>(kotlinType: KClass<out T>) : WebHandler {
             val fieldClass = field.returnType.classifier as KClass<*>
 
             // Custom type handlers
-            if (value.javaClass == String::class.java && fieldClass.java.isEnum) {
-                val stringValue = value.toString()
+            if (jsonNode.isTextual && fieldClass.java.isEnum) {
+                val stringValue = jsonNode.asText();
                 val enumConstants = fieldClass.java.enumConstants
                 val enumConstant = enumConstants.find { it.toString() == stringValue }
                 if (enumConstant == null) {
@@ -85,8 +88,10 @@ abstract class CrudHandler<T : Any>(kotlinType: KClass<out T>) : WebHandler {
             }
 
             try {
+                val value = WebManager.webReader.treeToValue(jsonNode, fieldClass.java);
                 field.setter.call(obj, value);
-
+            } catch (e: JsonProcessingException) {
+                return invalidResponse
             } catch (e: IllegalArgumentException) {
                 return invalidResponse
             }
@@ -136,7 +141,7 @@ abstract class CrudHandler<T : Any>(kotlinType: KClass<out T>) : WebHandler {
         }
         if (existing != null && existing.size > 0) {
             return HttpResponse.createJSONResponse(
-                400, SimpleAPIResponse(400, "Fields has to be unique", false)
+                400, SimpleAPIResponse(400, "Entry is not unique.", false)
             )
         }
 
@@ -147,7 +152,7 @@ abstract class CrudHandler<T : Any>(kotlinType: KClass<out T>) : WebHandler {
     private fun handleCreate(request: HttpServerExchange, response: Consumer<HttpResponse?>, user: User?) {
         request.requestReceiver.receiveFullBytes { exchange: HttpServerExchange, bytes: ByteArray ->
             val stringData = String(bytes, StandardCharsets.UTF_8)
-            val rawData = WebManager.webReader.readValue<Map<String, Any>>(stringData);
+            val rawData = WebManager.webReader.readTree(stringData);
 
             val obj = type.getConstructor().newInstance()!!
 
@@ -167,9 +172,9 @@ abstract class CrudHandler<T : Any>(kotlinType: KClass<out T>) : WebHandler {
     private fun handleUpdate(request: HttpServerExchange, response: Consumer<HttpResponse?>, user: User?) {
         request.requestReceiver.receiveFullBytes { exchange: HttpServerExchange, bytes: ByteArray ->
             val stringData = String(bytes, StandardCharsets.UTF_8)
-            val rawData = WebManager.webReader.readValue<HashMap<String, Any>>(stringData);
+            val rawData = WebManager.webReader.readTree(stringData);
 
-            val id = rawData["id"]?.toString()
+            val id = rawData.get("id")?.asText()
             if (id == null) {
                 response.accept(
                     HttpResponse.createJSONResponse(400, SimpleAPIResponse(400, "Update requires ID", false))
@@ -183,7 +188,7 @@ abstract class CrudHandler<T : Any>(kotlinType: KClass<out T>) : WebHandler {
                         .setParameter("id", id).singleResult
                 }!!
 
-                rawData.remove("id")
+                (rawData as ObjectNode).remove("id");
 
                 val error = assignAndValidateProperties(rawData, obj, user, id)
                 if (error != null) {

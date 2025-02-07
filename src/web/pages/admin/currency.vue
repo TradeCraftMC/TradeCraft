@@ -11,7 +11,7 @@
       </div>
       <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
         <button
-          @click="() => ((currentCurrency as any) = {})"
+          @click="() => openCreate()"
           type="button"
           class="cursor-pointer block rounded-md bg-cyan-200 px-3 py-2 text-center text-sm font-semibold text-zinc-900 shadow-xs hover:bg-cyan-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-200"
         >
@@ -53,7 +53,7 @@
                   class="w-full inline-flex items-center justify-end gap-x-3 py-2 text-sm font-medium whitespace-nowrap sm:pr-0"
                 >
                   <button
-                    @click="() => (currentCurrency = currency)"
+                    @click="() => openEdit(currency)"
                     class="cursor-pointer text-cyan-200 hover:text-cyan-300"
                   >
                     Edit<span class="sr-only">, {{ currency.name }}</span>
@@ -84,6 +84,18 @@
       :initial="(currentCurrency as any)"
       class="px-4 pb-4 pt-5 space-y-4 sm:p-6 sm:pb-4"
     >
+      <div v-if="currentCurrencyError" class="mt-6 rounded-md bg-red-600/5 p-4 m-2">
+        <div class="flex">
+          <div class="flex-shrink-0">
+            <XCircleIcon class="h-5 w-5 text-red-400" aria-hidden="true" />
+          </div>
+          <div class="ml-3">
+            <h3 class="text-sm font-bold text-red-400">
+              {{ currentCurrencyError }}
+            </h3>
+          </div>
+        </div>
+      </div>
       <div
         class="rounded-b-lg bg-zinc-800 px-4 py-3 sm:flex sm:gap-x-2 sm:flex-row-reverse sm:px-6"
       >
@@ -102,13 +114,13 @@
         >
           Cancel
         </button>
-        {{ currentCurrencyError }}
       </div>
     </UserForm>
   </ModalTemplate>
 </template>
 
 <script setup lang="ts">
+import { XCircleIcon } from "@heroicons/vue/16/solid";
 import { FetchError } from "ofetch";
 import { CurrencyBacker, type Currency } from "~/types/currency";
 import type { ServerResponse } from "~/types/error";
@@ -123,11 +135,23 @@ useHead({
   title: "Currencies",
 });
 
+const createMode = ref(false);
+
 const currentCurrency = ref<undefined | Currency>();
 const currentCurrencyLoading = ref<boolean>(false);
 const currentCurrencyError = ref<string | undefined>(undefined);
 
 const materials = useMaterials();
+
+function openCreate() {
+  createMode.value = true;
+  (currentCurrency.value as any) = {}
+}
+
+function openEdit(currency: Currency){
+  createMode.value = false;
+  currentCurrency.value = currency;
+}
 
 const currencyForm: UserForm = [
   {
@@ -206,15 +230,14 @@ async function onFinishEditing(currency: Currency) {
     const currentCurrencyIndex = currencies.value.findIndex(
       (e) => e.id == currentCurrency.value?.id
     );
-    const createMode = currentCurrencyIndex == -1;
     const newCurrency = await useAPI<Currency>("/api/v1/currency", {
-      method: createMode ? "POST" : "PATCH",
+      method: createMode.value ? "POST" : "PATCH",
       body: {
         ...currency,
-        id: createMode ? undefined : currentCurrency.value.id,
+        id: createMode.value ? undefined : currentCurrency.value.id,
       },
     });
-    if (createMode) {
+    if (createMode.value) {
       currencies.value.push(newCurrency);
     } else {
       Object.assign(currencies.value[currentCurrencyIndex], newCurrency);
